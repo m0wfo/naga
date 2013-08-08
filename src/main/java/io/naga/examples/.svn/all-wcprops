@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/78/trunk/src/main/naga/examples
+END
+package-info.java
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/48/trunk/src/main/naga/examples/package-info.java
+END
+EchoServer.java
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/76/trunk/src/main/naga/examples/EchoServer.java
+END
+ChatServer.java
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/78/trunk/src/main/naga/examples/ChatServer.java
+END
+SSLTester.java
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/76/trunk/src/main/naga/examples/SSLTester.java
+END
+ValidationClient.java
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/76/trunk/src/main/naga/examples/ValidationClient.java
+END
+Rot13Server.java
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/76/trunk/src/main/naga/examples/Rot13Server.java
+END
+ValidationServer.java
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/76/trunk/src/main/naga/examples/ValidationServer.java
+END
