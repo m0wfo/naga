@@ -30,28 +30,16 @@ import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
 import java.io.EOFException;
 import java.nio.ByteBuffer;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 /**
- * Undocumented Class
+ * Handles TLS packet encryption/decryption and handshake negotiation.
  *
  * @author Christoffer Lerno
  */
 public class SSLPacketHandler implements PacketReader, PacketWriter
 {
-    private final static Executor TASK_HANDLER = Executors.newSingleThreadExecutor();
 
-    private final static ThreadLocal<ByteBuffer> SSL_BUFFER = new ThreadLocal<ByteBuffer>()
-    {
-        @Override
-        protected ByteBuffer initialValue()
-        {
-            // Should be plenty.
-            return ByteBuffer.allocate(64 * 1024);
-        }
-    };
-
+    private final ByteBuffer SSL_BUFFER = ByteBuffer.allocate(64 * 1024);
     private final SSLEngine m_engine;
     private PacketReader m_reader;
     private PacketWriter m_writer;
@@ -99,24 +87,17 @@ public class SSLPacketHandler implements PacketReader, PacketWriter
         Runnable task;
         while ((task = m_engine.getDelegatedTask()) != null)
         {
-            TASK_HANDLER.execute(task);
+            task.run();
             tasksScheduled++;
         }
         if (tasksScheduled == 0)
         {
             return;
         }
-        TASK_HANDLER.execute(new Runnable()
-        {
-            public void run()
-            {
-                m_socket.queue(new Runnable()
-                {
-                    public void run()
-                    {
-                        reactToHandshakeStatus(m_engine.getHandshakeStatus());
-                    }
-                });
+        m_socket.queue(new Runnable() {
+
+            public void run() {
+                reactToHandshakeStatus(m_engine.getHandshakeStatus());
             }
         });
     }
@@ -131,7 +112,7 @@ public class SSLPacketHandler implements PacketReader, PacketWriter
         try
         {
             // Retrieve the local buffer.
-            ByteBuffer targetBuffer = SSL_BUFFER.get();
+            ByteBuffer targetBuffer = SSL_BUFFER;
             targetBuffer.clear();
 
             // Unwrap the data (both buffers should be sufficiently large)
@@ -214,7 +195,7 @@ public class SSLPacketHandler implements PacketReader, PacketWriter
                 byteBuffers = new ByteBuffer[0];
             }
             // Borrow the shared buffer.
-            ByteBuffer buffer = SSL_BUFFER.get();
+            ByteBuffer buffer = SSL_BUFFER;
             ByteBuffer[] buffers = null;
             try
             {
@@ -246,7 +227,7 @@ public class SSLPacketHandler implements PacketReader, PacketWriter
         // We are not handshaking, so encrypt the data using wrap
 
         // Use the shared buffer.
-        ByteBuffer buffer = SSL_BUFFER.get();
+        ByteBuffer buffer = SSL_BUFFER;
         buffer.clear();
 
         if (NIOUtils.isEmpty(byteBuffers))
