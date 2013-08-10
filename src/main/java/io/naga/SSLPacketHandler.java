@@ -24,12 +24,11 @@ package io.naga;
 import io.naga.exception.ProtocolViolationException;
 import io.naga.packetreader.RawPacketReader;
 import io.naga.packetwriter.RawPacketWriter;
-
+import java.io.EOFException;
+import java.nio.ByteBuffer;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
-import java.io.EOFException;
-import java.nio.ByteBuffer;
 
 /**
  * Handles TLS packet encryption/decryption and handshake negotiation.
@@ -96,6 +95,7 @@ public class SSLPacketHandler implements PacketReader, PacketWriter
         }
         m_socket.queue(new Runnable() {
 
+            @Override
             public void run() {
                 reactToHandshakeStatus(m_engine.getHandshakeStatus());
             }

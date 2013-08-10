@@ -36,7 +36,8 @@ public interface NIOSocketSSL extends NIOSocket
      *
      * @return an SSLEngine.
      */
-    SSLEngine getSSLEngine();
+    // TODO: remove this getter?
+//    SSLEngine getSSLEngine();
 
     /**
      * Initiates SSL-handshake, starts encrypted communication.
