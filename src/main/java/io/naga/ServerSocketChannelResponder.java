@@ -40,7 +40,7 @@ class ServerSocketChannelResponder extends ChannelResponder implements NIOServer
     private volatile ConnectionAcceptor m_connectionAcceptor;
     private ServerSocketObserver m_observer;
 
-    @SuppressWarnings({"ObjectToString"})
+//    @SuppressWarnings({"ObjectToString"})
     public ServerSocketChannelResponder(NIOService service,
             ServerSocketChannel channel,
             InetSocketAddress address) throws IOException {
@@ -57,6 +57,7 @@ class ServerSocketChannelResponder extends ChannelResponder implements NIOServer
         addInterest(SelectionKey.OP_ACCEPT);
     }
 
+    @Override
     public ServerSocketChannel getChannel() {
         return (ServerSocketChannel) super.getChannel();
     }
@@ -98,6 +99,7 @@ class ServerSocketChannelResponder extends ChannelResponder implements NIOServer
      * Callback to tell the object that there is at least one accept that can be
      * done on the server socket.
      */
+    @Override
     public void socketReadyForAccept() {
         m_totalConnections++;
         SocketChannel socketChannel = null;
@@ -132,22 +134,27 @@ class ServerSocketChannelResponder extends ChannelResponder implements NIOServer
         close();
     }
 
+    @Override
     public long getTotalRefusedConnections() {
         return m_totalRefusedConnections;
     }
 
+    @Override
     public long getTotalConnections() {
         return m_totalConnections;
     }
 
+    @Override
     public long getTotalFailedConnections() {
         return m_totalFailedConnections;
     }
 
+    @Override
     public long getTotalAcceptedConnections() {
         return m_totalAcceptedConnections;
     }
 
+    @Override
     public void setConnectionAcceptor(ConnectionAcceptor connectionAcceptor) {
         m_connectionAcceptor = connectionAcceptor == null ? ConnectionAcceptor.DENY : connectionAcceptor;
     }
@@ -163,6 +170,7 @@ class ServerSocketChannelResponder extends ChannelResponder implements NIOServer
 
     }
 
+    @Override
     public void listen(ServerSocketObserver observer) {
         if (observer == null) {
             throw new NullPointerException();
@@ -179,6 +187,7 @@ class ServerSocketChannelResponder extends ChannelResponder implements NIOServer
             m_newObserver = socketObserver;
         }
 
+        @Override
         public void run() {
             m_observer = m_newObserver;
             if (!isOpen()) {
@@ -194,10 +203,12 @@ class ServerSocketChannelResponder extends ChannelResponder implements NIOServer
         }
     }
 
+    @Override
     protected void shutdown(Exception e) {
         notifyObserverSocketDied(e);
     }
 
+    @Override
     public ServerSocket socket() {
         return getChannel().socket();
     }

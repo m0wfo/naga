@@ -229,15 +229,15 @@ public class NIOUtils {
         return newBuffers;
     }
 
-    public static ByteBuffer copy(ByteBuffer buffer) {
-        if (buffer == null) {
-            return null;
-        }
-        ByteBuffer copy = ByteBuffer.allocate(buffer.remaining());
-        copy.put(buffer);
-        copy.flip();
-        return copy;
-    }
+//    public static ByteBuffer copy(ByteBuffer buffer) {
+//        if (buffer == null) {
+//            return null;
+//        }
+//        ByteBuffer copy = ByteBuffer.allocate(buffer.remaining());
+//        copy.put(buffer);
+//        copy.flip();
+//        return copy;
+//    }
 
     public static long remaining(ByteBuffer[] byteBuffers) {
         long length = 0;

@@ -28,14 +28,17 @@ import java.io.IOException;
  *
  * @author Christoffer Lerno
  */
-public class ServerSocketObserverAdapter implements ServerSocketObserver {
+public final class ServerSocketObserverAdapter implements ServerSocketObserver {
 
+    @Override
     public void acceptFailed(IOException exception) {
     }
 
+    @Override
     public void serverSocketDied(Exception e) {
     }
 
+    @Override
     public void newConnection(NIOSocket nioSocket) {
     }
 }

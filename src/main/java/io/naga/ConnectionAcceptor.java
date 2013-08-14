@@ -42,6 +42,7 @@ public interface ConnectionAcceptor {
      */
     ConnectionAcceptor DENY = new ConnectionAcceptor() {
 
+        @Override
         public boolean acceptConnection(InetSocketAddress address) {
             return false;
         }
@@ -51,6 +52,7 @@ public interface ConnectionAcceptor {
      */
     ConnectionAcceptor ALLOW = new ConnectionAcceptor() {
 
+        @Override
         public boolean acceptConnection(InetSocketAddress address) {
             return true;
         }

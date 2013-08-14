@@ -57,15 +57,18 @@ class SocketChannelResponder extends ChannelResponder implements NIOSocket {
         m_socketWriter = new SocketWriter();
     }
 
+    @Override
     void keyInitialized() {
         if (!isConnected()) {
             addInterest(SelectionKey.OP_CONNECT);
         }
     }
 
+    @Override
     public void closeAfterWrite() {
         queue(new Runnable() {
 
+            @Override
             public void run() {
                 m_packetQueue.clear();
                 close(null);
@@ -73,11 +76,13 @@ class SocketChannelResponder extends ChannelResponder implements NIOSocket {
         });
     }
 
+    @Override
     public void queue(Runnable runnable) {
         m_packetQueue.offer(runnable);
         getNIOService().queue(new AddInterestEvent(SelectionKey.OP_WRITE));
     }
 
+    @Override
     public boolean write(byte[] packet, Object tag) {
         long currentQueueSize = m_bytesInQueue.addAndGet(packet.length);
         if (m_maxQueueSize > 0 && currentQueueSize > m_maxQueueSize) {
@@ -92,6 +97,7 @@ class SocketChannelResponder extends ChannelResponder implements NIOSocket {
         return true;
     }
 
+    @Override
     public boolean write(byte[] packet) {
         return write(packet, null);
     }
@@ -132,6 +138,7 @@ class SocketChannelResponder extends ChannelResponder implements NIOSocket {
         }
     }
 
+    @Override
     public void socketReadyForRead() {
         if (!isOpen()) {
             return;
@@ -182,6 +189,7 @@ class SocketChannelResponder extends ChannelResponder implements NIOSocket {
         }
     }
 
+    @Override
     public void socketReadyForWrite() {
         try {
             deleteInterest(SelectionKey.OP_WRITE);
@@ -211,6 +219,7 @@ class SocketChannelResponder extends ChannelResponder implements NIOSocket {
         }
     }
 
+    @Override
     public void socketReadyForConnect() {
         try {
             if (!isOpen()) {
@@ -251,6 +260,7 @@ class SocketChannelResponder extends ChannelResponder implements NIOSocket {
         return m_bytesInQueue.get();
     }
 
+    @Override
     public String toString() {
         try {
             return getSocket().toString();
@@ -262,6 +272,7 @@ class SocketChannelResponder extends ChannelResponder implements NIOSocket {
     /**
      * @return the current maximum queue size.
      */
+    @Override
     public int getMaxQueueSize() {
         return m_maxQueueSize;
     }
@@ -273,10 +284,12 @@ class SocketChannelResponder extends ChannelResponder implements NIOSocket {
      * @param maxQueueSize the new max queue size. A value less than 1 is an
      * unbounded queue.
      */
+    @Override
     public void setMaxQueueSize(int maxQueueSize) {
         m_maxQueueSize = maxQueueSize;
     }
 
+    @Override
     public void listen(SocketObserver socketObserver) {
         markObserverSet();
         getNIOService().queue(new BeginListenEvent(this, socketObserver == null ? SocketObserver.NULL : socketObserver));
@@ -330,6 +343,7 @@ class SocketChannelResponder extends ChannelResponder implements NIOSocket {
         });
     }
 
+    @Override
     public SocketChannel getChannel() {
         return (SocketChannel) super.getChannel();
     }

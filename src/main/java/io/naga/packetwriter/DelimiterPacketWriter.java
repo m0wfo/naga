@@ -38,6 +38,7 @@ public class DelimiterPacketWriter implements PacketWriter {
         m_endByte = ByteBuffer.wrap(new byte[]{endByte});
     }
 
+    @Override
     public ByteBuffer[] write(ByteBuffer[] byteBuffer) {
         m_endByte.rewind();
         return NIOUtils.concat(byteBuffer, m_endByte);

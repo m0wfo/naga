@@ -26,17 +26,21 @@ package io.naga;
  *
  * @author Christoffer Lerno
  */
-public class SocketObserverAdapter implements SocketObserver {
+public final class SocketObserverAdapter implements SocketObserver {
 
+    @Override
     public void connectionBroken(NIOSocket nioSocket, Exception exception) {
     }
 
+    @Override
     public void packetReceived(NIOSocket socket, byte[] packet) {
     }
 
+    @Override
     public void connectionOpened(NIOSocket nioSocket) {
     }
 
+    @Override
     public void packetSent(NIOSocket socket, Object tag) {
     }
 }

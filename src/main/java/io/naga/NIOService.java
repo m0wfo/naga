@@ -21,8 +21,7 @@
  */
 package io.naga;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -32,6 +31,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 
 /**
  * This class forms the basis of the NIO handling in Naga. <p> Common usage is
@@ -59,7 +60,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *
  * @author Christoffer Lerno
  */
-public class NIOService {
+public class NIOService implements Closeable {
 
     public final static int DEFAULT_IO_BUFFER_SIZE = 64 * 1024;
     /**
@@ -93,7 +94,7 @@ public class NIOService {
         m_selector = Selector.open();
         m_internalEventQueue = new ConcurrentLinkedQueue<Runnable>();
         m_exceptionObserver = ExceptionObserver.DEFAULT;
-        setBufferSize(ioBufferSize);
+        m_sharedBuffer = createBuffer(ioBufferSize);
     }
 
     /**
@@ -196,9 +197,9 @@ public class NIOService {
     }
 
     /**
-     * Open a socket to the host on the given port returning a NIOSocketSSL. <p>
-     * This roughly corresponds to creating a regular socket using new
-     * SSLSocket(inetAddress, port). <p> <em>This method is thread-safe.</em>
+     * Open a socket to the host on the given port returning a NIOSocketSSL.
+     * <p>This roughly corresponds to creating a regular socket using new
+     * SSLSocket(inetAddress, port). </p> <em>This method is thread-safe.</em>
      *
      * @param sslEngine the SSL engine to use for SSL-negotiation.
      * @param inetAddress the address we want to connect to.
@@ -276,6 +277,14 @@ public class NIOService {
         return openSSLServerSocket(sslContext, port, -1);
     }
 
+    private ServerSocketChannel getServerSocketChannel(InetSocketAddress address, int backlog) throws IOException {
+        ServerSocketChannel channel = ServerSocketChannel.open();
+        channel.socket().setReuseAddress(true);
+        channel.socket().bind(address, backlog);
+        channel.configureBlocking(false);
+        return channel;
+    }
+
     /**
      * Open an SSL server socket on the address. <p> <em>This method is
      * thread-safe.</em>
@@ -289,10 +298,7 @@ public class NIOService {
      * @throws IOException if registering the socket fails.
      */
     public NIOServerSocketSSL openSSLServerSocket(SSLContext sslContext, InetSocketAddress address, int backlog) throws IOException {
-        ServerSocketChannel channel = ServerSocketChannel.open();
-        channel.socket().setReuseAddress(true);
-        channel.socket().bind(address, backlog);
-        channel.configureBlocking(false);
+        ServerSocketChannel channel = getServerSocketChannel(address, backlog);
         SSLServerSocketChannelResponder channelResponder = new SSLServerSocketChannelResponder(sslContext, this, channel, address);
         queue(new RegisterChannelEvent(channelResponder));
         return channelResponder;
@@ -310,10 +316,7 @@ public class NIOService {
      * @throws IOException if registering the socket fails.
      */
     public NIOServerSocket openServerSocket(InetSocketAddress address, int backlog) throws IOException {
-        ServerSocketChannel channel = ServerSocketChannel.open();
-        channel.socket().setReuseAddress(true);
-        channel.socket().bind(address, backlog);
-        channel.configureBlocking(false);
+        ServerSocketChannel channel = getServerSocketChannel(address, backlog);
         ServerSocketChannelResponder channelResponder = new ServerSocketChannelResponder(this, channel, address);
         queue(new RegisterChannelEvent(channelResponder));
         return channelResponder;
@@ -331,7 +334,7 @@ public class NIOService {
      * selector is closed.
      */
     NIOSocket registerSocketChannel(SocketChannel socketChannel, InetSocketAddress address) throws IOException {
-        socketChannel.configureBlocking(false);
+//        socketChannel.configureBlocking(false);
         SocketChannelResponder channelResponder = new SocketChannelResponder(this, socketChannel, address);
         queue(new RegisterChannelEvent(channelResponder));
         return channelResponder;
@@ -375,24 +378,15 @@ public class NIOService {
         }
     }
 
-    /**
-     * Set the new shared buffer size. <p> <em>This method is *not*
-     * thread-safe.</em>
-     *
-     * @param newBufferSize the new buffer size.
-     * @throws IllegalArgumentException if the new size is less than 256 bytes.
-     */
-    public void setBufferSize(int newBufferSize) {
-        if (newBufferSize < 256) {
+    private ByteBuffer createBuffer(int bufferSize) {
+        if (bufferSize < 256) {
             throw new IllegalArgumentException("The buffer must at least hold 256 bytes");
         }
-        m_sharedBuffer = ByteBuffer.allocate(newBufferSize);
+        return ByteBuffer.allocateDirect(bufferSize);
     }
 
     /**
      * Returns the new shared buffer size.
-     * <p/>
-     * <em>This method is *not* thread-safe.</em>
      *
      * @return the current buffer size, which is the largest packet that can be
      * read.
@@ -412,9 +406,9 @@ public class NIOService {
     }
 
     /**
-     * Internal method to handle a SelectionKey that has changed. <p> Will
-     * delegate actual actions to the associated ChannelResponder. <p> Called on
-     * the NIOService thread.
+     * Internal method to handle a SelectionKey that has changed.
+     *
+     * <p>Will delegate actual actions to the associated {@link ChannelResponder}.</p>
      *
      * @param key the key to handle.
      */
@@ -440,24 +434,22 @@ public class NIOService {
     }
 
     /**
-     * Close the entire service. <p> This will disconnect all sockets associated
-     * with this service. <p> It is not possible to restart the service once
-     * closed. <p> <em>This method is thread-safe.</em>
+     * Close the entire service.
+     *
+     * <p>This will disconnect all sockets associated with this service.</p>
+     *
+     * <p>It is not possible to restart the service once closed.</p> <em>This
+     * method is thread-safe.</em>
      */
+    @Override
     public void close() {
-        if (!isOpen()) {
-            return;
+        if (isOpen()) {
+            queue(new ShutdownEvent());
         }
-        queue(new ShutdownEvent());
     }
 
-    /**
-     * Determine if this service is open. <p> <em>This method is
-     * thread-safe.</em>
-     *
-     * @return true if the service is open, false otherwise.
-     */
-    public boolean isOpen() {
+    // Thread-safe internal check for open-ness
+    private boolean isOpen() {
         return m_selector.isOpen();
     }
 
@@ -516,7 +508,6 @@ public class NIOService {
         } catch (Exception e) {
             System.err.println("Failed to log the following exception to the exception observer:");
             System.err.println(e);
-            e.printStackTrace();
         }
     }
 
@@ -531,6 +522,7 @@ public class NIOService {
             m_channelResponder = channelResponder;
         }
 
+        @Override
         public void run() {
             try {
                 SelectionKey key = m_channelResponder.getChannel().register(m_selector, m_channelResponder.getChannel().validOps());
@@ -557,12 +549,8 @@ public class NIOService {
                 return;
             }
             for (SelectionKey key : m_selector.keys()) {
-                try {
-                    NIOUtils.cancelKeySilently(key);
-                    ((ChannelResponder) key.attachment()).close();
-                } catch (Exception e) {
-                    // Swallow exceptions.
-                }
+                NIOUtils.cancelKeySilently(key);
+                ((ChannelResponder) key.attachment()).close();
             }
             try {
                 m_selector.close();

@@ -21,8 +21,6 @@
  */
 package io.naga;
 
-import io.naga.NIOService;
-import io.naga.NIOUtils;
 import java.net.InetSocketAddress;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectableChannel;
@@ -68,22 +66,27 @@ abstract class ChannelResponder implements NIOAbstractSocket {
         m_tag = null;
     }
 
+    @Override
     public InetSocketAddress getAddress() {
         return m_address;
     }
 
+    @Override
     public String getIp() {
         return m_ip;
     }
 
+    @Override
     public int getPort() {
         return m_port;
     }
 
+    @Override
     public void setTag(Object tag) {
         m_tag = tag;
     }
 
+    @Override
     public Object getTag() {
         return m_tag;
     }
@@ -185,10 +188,12 @@ abstract class ChannelResponder implements NIOAbstractSocket {
      */
     abstract void keyInitialized();
 
+    @Override
     public boolean isOpen() {
         return m_open;
     }
 
+    @Override
     public void close() {
         close(null);
     }
