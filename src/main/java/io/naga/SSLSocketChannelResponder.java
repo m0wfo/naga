@@ -21,6 +21,7 @@
  */
 package io.naga;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import javax.net.ssl.SSLEngine;
@@ -136,12 +137,7 @@ class SSLSocketChannelResponder implements NIOSocketSSL, SocketObserver {
     }
 
     @Override
-    public Socket socket() {
-        return m_wrappedSocket.socket();
-    }
-
-    @Override
-    public void close() {
+    public void close() throws IOException {
         m_wrappedSocket.close();
     }
 
@@ -153,16 +149,6 @@ class SSLSocketChannelResponder implements NIOSocketSSL, SocketObserver {
     @Override
     public boolean isOpen() {
         return m_wrappedSocket.isOpen();
-    }
-
-    @Override
-    public String getIp() {
-        return m_wrappedSocket.getIp();
-    }
-
-    @Override
-    public int getPort() {
-        return m_wrappedSocket.getPort();
     }
 
     @Override
@@ -183,7 +169,11 @@ class SSLSocketChannelResponder implements NIOSocketSSL, SocketObserver {
         } catch (Exception ex) {
             m_nioService.notifyException(e);
         }
-        m_wrappedSocket.close();
+        try {
+            m_wrappedSocket.close();
+        } catch (IOException ex) {
+            // TODO
+        }
     }
 
     @Override

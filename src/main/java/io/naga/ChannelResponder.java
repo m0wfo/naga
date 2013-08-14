@@ -72,16 +72,6 @@ abstract class ChannelResponder implements NIOAbstractSocket {
     }
 
     @Override
-    public String getIp() {
-        return m_ip;
-    }
-
-    @Override
-    public int getPort() {
-        return m_port;
-    }
-
-    @Override
     public void setTag(Object tag) {
         m_tag = tag;
     }

@@ -21,8 +21,6 @@
  */
 package io.naga;
 
-import java.net.Socket;
-
 /**
  * Interface for the NIOSocket, which is an asynchronous facade to an underlying
  * Socket. <p> The NIOSocket executes callbacks to a Socket observer to react to
@@ -160,13 +158,4 @@ public interface NIOSocket extends NIOAbstractSocket {
      * <em>This method is thread-safe.</em>
      */
     void closeAfterWrite();
-
-    /**
-     * Allows access to the underlying socket. <p> <em>Note that accessing
-     * streams or closing the socket will put this NIOSocket in an undefined
-     * state</em>
-     *
-     * @return return the underlying socket.
-     */
-    Socket socket();
 }

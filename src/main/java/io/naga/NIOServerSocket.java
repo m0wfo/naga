@@ -33,38 +33,6 @@ import java.net.ServerSocket;
 public interface NIOServerSocket extends NIOAbstractSocket {
 
     /**
-     * Returns the total number of connections made on this socket since it
-     * opened. <p> <em>This method is thread-safe.</em>
-     *
-     * @return the total number of connections made on this server socket.
-     */
-    long getTotalConnections();
-
-    /**
-     * Returns the total number of refused connections on this socket since it
-     * opened. <p> <em>This method is thread-safe.</em>
-     *
-     * @return the total number of refused connections on this server socket.
-     */
-    long getTotalRefusedConnections();
-
-    /**
-     * Returns the total number of accepted connections on this socket since it
-     * opened. <p> <em>This method is thread-safe.</em>
-     *
-     * @return the total number of accepted connections on this server socket.
-     */
-    long getTotalAcceptedConnections();
-
-    /**
-     * Returns the total number of failed connections on this socket since it
-     * opened. <p> <em>This method is thread-safe.</em>
-     *
-     * @return the total number of failed connections on this server socket.
-     */
-    long getTotalFailedConnections();
-
-    /**
      * Associates a server socket observer with this server socket and starts
      * accepting connections. <p> <em>This method is thread-safe, but may only
      * be called once.</em>

@@ -33,24 +33,15 @@ import java.nio.channels.SocketChannel;
  */
 class ServerSocketChannelResponder extends ChannelResponder implements NIOServerSocket {
 
-    private long m_totalRefusedConnections;
-    private long m_totalAcceptedConnections;
-    private long m_totalFailedConnections;
-    private long m_totalConnections;
     private volatile ConnectionAcceptor m_connectionAcceptor;
     private ServerSocketObserver m_observer;
 
-//    @SuppressWarnings({"ObjectToString"})
     public ServerSocketChannelResponder(NIOService service,
             ServerSocketChannel channel,
             InetSocketAddress address) throws IOException {
         super(service, channel, address);
         m_observer = null;
         setConnectionAcceptor(ConnectionAcceptor.ALLOW);
-        m_totalRefusedConnections = 0;
-        m_totalAcceptedConnections = 0;
-        m_totalFailedConnections = 0;
-        m_totalConnections = 0;
     }
 
     public void keyInitialized() {
@@ -74,7 +65,7 @@ class ServerSocketChannelResponder extends ChannelResponder implements NIOServer
         return getNIOService().registerSocketChannel(channel, address);
     }
 
-    private void notifyNewConnection(NIOSocket socket) {
+    private void notifyNewConnection(NIOSocket socket) throws IOException {
         try {
             if (m_observer != null) {
                 m_observer.newConnection(socket);
@@ -101,14 +92,10 @@ class ServerSocketChannelResponder extends ChannelResponder implements NIOServer
      */
     @Override
     public void socketReadyForAccept() {
-        m_totalConnections++;
         SocketChannel socketChannel = null;
         try {
             socketChannel = getChannel().accept();
             if (socketChannel == null) {
-                // This means there actually wasn't any connection waiting,
-                // so tick down the number of actual total connections.
-                m_totalConnections--;
                 return;
             }
 
@@ -116,42 +103,15 @@ class ServerSocketChannelResponder extends ChannelResponder implements NIOServer
             // Is this connection acceptable?
             if (!m_connectionAcceptor.acceptConnection(address)) {
                 // Connection was refused by the socket owner, so update stats and close connection
-                m_totalRefusedConnections++;
                 NIOUtils.closeChannelSilently(socketChannel);
                 return;
             }
             notifyNewConnection(registerSocket(socketChannel, address));
-            m_totalAcceptedConnections++;
         } catch (IOException e) {
             // Close channel in case it opened.
             NIOUtils.closeChannelSilently(socketChannel);
-            m_totalFailedConnections++;
             notifyAcceptFailed(e);
         }
-    }
-
-    public void notifyWasCancelled() {
-        close();
-    }
-
-    @Override
-    public long getTotalRefusedConnections() {
-        return m_totalRefusedConnections;
-    }
-
-    @Override
-    public long getTotalConnections() {
-        return m_totalConnections;
-    }
-
-    @Override
-    public long getTotalFailedConnections() {
-        return m_totalFailedConnections;
-    }
-
-    @Override
-    public long getTotalAcceptedConnections() {
-        return m_totalAcceptedConnections;
     }
 
     @Override

@@ -21,6 +21,7 @@
  */
 package io.naga;
 
+import java.io.Closeable;
 import java.net.InetSocketAddress;
 
 /**
@@ -28,45 +29,20 @@ import java.net.InetSocketAddress;
  *
  * @author Christoffer Lerno
  */
-public interface NIOAbstractSocket {
-
+public interface NIOAbstractSocket extends Closeable {
     /**
-     * Closes this socket (the actual disconnect will occur on the NIOService
-     * thread) <p> <em>This method is thread-safe.</em>
-     */
-    void close();
-
-    /**
-     * Returns the InetSocketAddress for this socket. <p> <em>This method is
-     * thread-safe.</em>
+     * Returns the InetSocketAddress for this socket.
      *
      * @return the InetSocketAddress this socket connects to.
      */
     InetSocketAddress getAddress();
 
     /**
-     * Returns the current state of this socket. <p> <em>This method is
-     * thread-safe.</em>
+     * Returns the current state of this socket.
      *
      * @return true if the connection is socket is open, false if closed.
      */
     boolean isOpen();
-
-    /**
-     * Reports the IP used by this socket. <p> <em>This method is
-     * thread-safe.</em>
-     *
-     * @return the IP of this socket.
-     */
-    String getIp();
-
-    /**
-     * Returns the port in use by this socket. <p> <em>This method is
-     * thread-safe.</em>
-     *
-     * @return the port of this socket.
-     */
-    int getPort();
 
     /**
      * Returns the tag for this socket.
